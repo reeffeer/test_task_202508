@@ -1,2 +1,8 @@
-package ru.yandex;public class Main {
+package ru.yandex;
+
+public class Main {
+
+    public static void main(String[] args) {
+
+    }
 }
