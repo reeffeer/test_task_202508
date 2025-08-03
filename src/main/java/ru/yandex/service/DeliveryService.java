@@ -1,26 +1,46 @@
 package ru.yandex.service;
 
+import lombok.NonNull;
 import ru.yandex.enums.Dimension;
 import ru.yandex.enums.Workload;
 
-import static ru.yandex.enums.Dimension.BIG;
-import static ru.yandex.enums.Dimension.SMALL;
-import static ru.yandex.enums.Workload.*;
+import java.math.BigDecimal;
+import java.util.Objects;
+
+import static ru.yandex.enums.Workload.NORMAL;
+import static ru.yandex.enums.Workload.HIGH;
+import static ru.yandex.enums.Workload.HIGHER;
+import static ru.yandex.enums.Workload.HIGHEST;
 
 public class DeliveryService {
-    private static final double minCost = 400;
+    private static final BigDecimal MIN_COST = BigDecimal.valueOf(400);
+    private static final double BAND1 = 2.0;
+    private static final double BAND2 = 10.0;
+    private static final double BAND3 = 30.0;
 
-    public double calculateDeliveryCost(
+    public BigDecimal calculateDeliveryCost(
             double distance,
-            Dimension dimension,
+            @NonNull Dimension dimension,
             boolean fragility,
-            Workload workload) {
-        double cost = checkDistance(distance);
-        cost += costcheckDimension(dimension);
-        cost += checkFragility(fragility, distance);
-        cost *= checkMultiplier(workload);
+            @NonNull Workload workload) {
+        Objects.requireNonNull(dimension, "Dimension is required");
+        Objects.requireNonNull(workload, "Workload is required");
 
-        return Math.max(cost, minCost);
+        if (distance < 0) {
+            throw new IllegalArgumentException("Distance cannot be negative");
+        }
+        if (distance == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal cost = BigDecimal.ZERO
+                .add(BigDecimal.valueOf(checkDistance(distance)))
+                .add(BigDecimal.valueOf(checkDimension(dimension)))
+                .add(checkFragility(fragility, distance));
+
+        cost = cost.multiply(BigDecimal.valueOf(workload.getValue()));
+
+        return cost.max(MIN_COST);
     }
 
     private double checkMultiplier(Workload workload) {
@@ -32,18 +52,17 @@ public class DeliveryService {
         };
     }
 
-    private double checkFragility(boolean fragility, double distance) {
+    private BigDecimal checkFragility(boolean fragility, double distance) {
         if (fragility) {
             if (distance > 30) {
-                throw new IllegalArgumentException(
-                        "Fragile items can't be shipped over 30 km");
+                throw new IllegalArgumentException("Fragile items can't be shipped over 30 km");
             }
-            return 300;
+            return BigDecimal.valueOf(300);
         }
-        return 0;
+        return BigDecimal.ZERO;
     }
 
-    private double costcheckDimension(Dimension dimension) {
+    private double checkDimension(Dimension dimension) {
         return switch (dimension) {
             case BIG -> 200;
             case SMALL -> 100;
@@ -51,13 +70,11 @@ public class DeliveryService {
     }
 
     private double checkDistance(double distance) {
-        if (distance < 0) {
-            throw new IllegalArgumentException("Distance must be positive");
-        }else if (distance > 30) {
+        if (distance > BAND3) {
            return 300;
-       } else if (distance > 10) {
+       } else if (distance > BAND2) {
            return 200;
-       } else if (distance > 2) {
+       } else if (distance > BAND1) {
            return 100;
        } else {
            return 50;
