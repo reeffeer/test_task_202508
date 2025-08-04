@@ -7,11 +7,6 @@ import ru.yandex.enums.Workload;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-import static ru.yandex.enums.Workload.NORMAL;
-import static ru.yandex.enums.Workload.HIGH;
-import static ru.yandex.enums.Workload.HIGHER;
-import static ru.yandex.enums.Workload.HIGHEST;
-
 public class DeliveryService {
     private static final BigDecimal MIN_COST = BigDecimal.valueOf(400);
     private static final double BAND1 = 2.0;
@@ -41,15 +36,6 @@ public class DeliveryService {
         cost = cost.multiply(BigDecimal.valueOf(workload.getValue()));
 
         return cost.max(MIN_COST);
-    }
-
-    private double checkMultiplier(Workload workload) {
-        return switch (workload) {
-            case HIGHEST -> HIGHEST.getValue();
-            case HIGHER -> HIGHER.getValue();
-            case HIGH -> HIGH.getValue();
-            default -> NORMAL.getValue();
-        };
     }
 
     private BigDecimal checkFragility(boolean fragility, double distance) {
