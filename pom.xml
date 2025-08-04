@@ -35,11 +35,13 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <allure.version>2.13.5</allure.version>
     </properties>
+
     <build>
         <plugins>
             <plugin>
